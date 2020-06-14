@@ -1,0 +1,22 @@
+sudo: required
+services:
+    - docker
+
+before_install:
+    - docker build -t vasudhak/react-test -f ./client/Dockerfile.dev ../client
+
+script:
+    - docker run vasudhak/react-test npm test -- --coverage
+
+after_success:
+    - docker build -t vasudhak/multi-client ./client
+    - docker build -t vasudhak/multi-nginx ./nginx
+    - docker build -t vasudhak/multi-server ./server
+    - docker build -t vasudhak/multi-worker ./worker
+
+    #log in to the docker cli
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+    - docker push vasudhak/multi-client
+    - docker push vasudhak/multi-nginx
+    - docker push vasudhak/mulit-server
+    - docker push vasudhak/multi-worker
